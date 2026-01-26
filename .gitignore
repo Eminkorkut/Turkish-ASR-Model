@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch & Model Checkpoints
+*.pt
+*.pth
+checkpoints/
+
+# Datasets
+ISSAI_TSC_218/
+train_processed_features/
+*.wav
+*.mp3
+*.flac
+
+# IDE Settings
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Virtual Environments
+venv/
+env/
+.env
+
+# Other
+turkish_conformer_final.pt
