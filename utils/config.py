@@ -20,6 +20,8 @@ def get_config():
     # Bölümleme Oranları
     parser.add_argument("--val_split", type=float, default=0.1, help="Validasyon ayırma oranı (örn. 0.1 = %10).")
     parser.add_argument("--test_split", type=float, default=0.1, help="Test ayırma oranı (örn. 0.1 = %10).")
+    
+    parser.add_argument("--vocab_size", type=int, default=1000, help="SentencePiece sözlük boyutu.")
 
     parser.add_argument("--checkpoint_dir", type=str, default="./checkpoints", help="Model kayıtlarının (checkpoint) saklanacağı klasör.")
     parser.add_argument("--output_model_path", type=str, default="turkish_conformer_final.pt", help="Eğitim sonundaki final modelin kaydedileceği yol.")

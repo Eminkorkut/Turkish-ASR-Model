@@ -36,20 +36,30 @@ class SpecAugment(nn.Module):
         
         return x
 
+from utils.metrics import ASRMetrics
+
 class Trainer:
     """
     Eğitim sürecini yöneten sınıf.
     Modeli başlatır, eğitir, checkpoint alır ve loglar.
     """
-    def __init__(self, model, train_loader, optimizer, scheduler, device, config, logger, valid_loader=None):
+    def __init__(self, model, train_loader, optimizer, scheduler, device, config, logger, valid_loader=None, tokenizer=None): # Tokenizer eklendi
         self.model = model
         self.train_loader = train_loader
-        self.valid_loader = valid_loader # Validasyon için eklendi
+        self.valid_loader = valid_loader 
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.device = device
         self.config = config
         self.logger = logger
+        self.tokenizer = tokenizer # Metrikler için gerekli
+        
+        # Metrik Hesaplayıcı
+        if tokenizer:
+            self.metrics = ASRMetrics(tokenizer)
+        else:
+            self.metrics = None
+            self.logger.warning("Tokenizer verilmediği için WER/CER hesaplanamayacak!")
         
         self.criterion = nn.CTCLoss(blank=0, zero_infinity=True)
         self.scaler = GradScaler()
@@ -103,28 +113,57 @@ class Trainer:
         return avg_loss
 
     def validate(self, epoch):
-        """Validasyon seti üzerinde performans ölçer (Loss)."""
+        """Validasyon seti üzerinde performans ölçer (Loss + WER + CER)."""
         if not self.valid_loader:
             return None
             
         self.model.eval()
         val_loss = 0
+        total_wer = 0
+        total_cer = 0
+        num_batches = 0
+        
+        # Örnek tahminleri loglamak için
+        example_preds = []
+        example_targets = []
         
         with torch.no_grad():
             for features, targets, input_lengths, target_lengths in self.valid_loader:
                 features, targets = features.to(self.device), targets.to(self.device)
                 
-                output = self.model(features)
-                output = output.permute(1, 0, 2)
-                log_probs = torch.nn.functional.log_softmax(output, dim=2)
+                output = self.model(features) # (Batch, Time/4, Class)
+                # Loss İçin Permute gerekli
+                output_permuted = output.permute(1, 0, 2)
+                log_probs = torch.nn.functional.log_softmax(output_permuted, dim=2)
                 
                 current_input_lengths = input_lengths // 4
                 
                 loss = self.criterion(log_probs, targets, current_input_lengths, target_lengths)
                 val_loss += loss.item()
                 
-        avg_val_loss = val_loss / len(self.valid_loader)
-        self.logger.info(f"Epoch {epoch} | Validation Loss: {avg_val_loss:.4f}")
+                # Metrik Hesabı (Metric class'ı (Batch, Time, Class) bekliyor, yani 'output' doğrudan kullanılabilir)
+                if self.metrics:
+                    metric_res, preds, targs = self.metrics.compute(output, targets)
+                    total_wer += metric_res["wer"]
+                    total_cer += metric_res["cer"]
+                    
+                    if num_batches == 0: # İlk batch'ten örnek al
+                        example_preds = preds[:2]
+                        example_targets = targs[:2]
+                        
+                num_batches += 1
+                
+        avg_val_loss = val_loss / num_batches
+        avg_wer = total_wer / num_batches if num_batches > 0 else 0
+        avg_cer = total_cer / num_batches if num_batches > 0 else 0
+        
+        self.logger.info(f"Epoch {epoch} | Validation Loss: {avg_val_loss:.4f} | WER: {avg_wer:.4f} | CER: {avg_cer:.4f}")
+        
+        # Örnekleri yazdır
+        if example_preds:
+            self.logger.info(f"Örnek Tahmin:  {example_preds[0]}")
+            self.logger.info(f"Örnek Hedef:   {example_targets[0]}")
+            
         return avg_val_loss
 
     def save_checkpoint(self, epoch, name=None):

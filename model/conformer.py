@@ -3,52 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class PositionalEncoding(nn.Module):
-    """
-    Transformer tabanlı modeller için Sinüzoidal Pozisyon Kodlaması (Sinusoidal Positional Encoding).
+from model.attention import RelativeMultiHeadAttention, RelativePositionalEncoding
 
-    Amaç:
-    - Self-attention mekanizması, RNN'lerin aksine girdinin sırasını (zaman algısını) doğrudan anlayamaz.
-    - Bu modül, modele her anın (saniyenin/token'ın) sırasını bildiren benzersiz bir sinyal ekler.
-    - Öğrenilebilir parametre içermez (deterministik formül kullanılır).
 
-    Formül:
-        PE(pos, 2i)   = sin(pos / 10000^(2i / d_model))
-        PE(pos, 2i+1) = cos(pos / 10000^(2i / d_model))
-    """
-
-    def __init__(self, d_model, max_len=5000):
-        super(PositionalEncoding, self).__init__()
-
-        # (max_len, d_model) boyutunda sıfır matrisi
-        pe = torch.zeros(max_len, d_model)
-
-        # Pozisyon indeksleri (0, 1, 2, ..., max_len-1)
-        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-
-        # Frekans terimleri (log uzayında hesaplanır, sayısal kararlılık için)
-        div_term = torch.exp(
-            torch.arange(0, d_model, 2).float()
-            * (-math.log(10000.0) / d_model)
-        )
-
-        # Çift indekslere sinüs, tek indekslere kosinüs uygula
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-
-        # Modül parametresi değil, sabit bir buffer olarak kaydet (state_dict içinde saklanır ama güncellenmez)
-        self.register_buffer('pe', pe.unsqueeze(0))
-
-    def forward(self, x):
-        """
-        Args:
-            x (Tensor): Giriş vektörü (Batch, Time, D_Model)
-
-        Returns:
-            Tensor: Pozisyon bilgisi eklenmiş vektör (Batch, Time, D_Model)
-        """
-        # Giriş uzunluğuna kadar olan kısmı al ve ekle
-        return x + self.pe[:, :x.size(1), :]
 
 
 class ConformerConvModule(nn.Module):
@@ -141,11 +98,11 @@ class ConformerBlock(nn.Module):
         )
 
         # --- 2. Multi-Head Self Attention ---
-        self.attn = nn.MultiheadAttention(
+        # --- 2. Multi-Head Self Attention (Relative) ---
+        self.attn = RelativeMultiHeadAttention(
             d_model,
             n_heads,
-            dropout=dropout,
-            batch_first=True
+            dropout=dropout
         )
         self.norm_attn = nn.LayerNorm(d_model)
 
@@ -166,7 +123,18 @@ class ConformerBlock(nn.Module):
         # --- 5. Final Normalizasyon ---
         self.final_norm = nn.LayerNorm(d_model)
 
-    def forward(self, x):
+        # 2. Attention + Residual
+        # Relative Attention pos_emb parametresi ister, ama encoder bloklarında 
+        # genellikle PE dışarıdan veya içeriden verilir.
+        # Biz burada PE'yi blok dışında hesaplayıp içeriye taşıyacağız 
+        # VEYA standartlaştırmak için x içinden alacağız? 
+        # Çözüm: forward metoduna pos_emb argümanı eklemek.
+        # Ancak nn.Sequential veya nn.ModuleList kullanırken argüman taşımak zordur.
+        # Bu yüzden burada bir trick yapıp, pos_emb'i x'e eklemek yerine (klasik PE), 
+        # ayrı bir argüman olarak bekleyeceğiz. Bu ConformerBlock imzasını değiştirir.
+
+        
+    def forward(self, x, pos_emb=None):
         # Macaron Net stili: FF katmanları ikiye bölünür ve 0.5 ile toplanır.
         
         # 1. FF1 + Residual
@@ -174,10 +142,12 @@ class ConformerBlock(nn.Module):
         
         # 2. Attention + Residual
         # Norm içeride, residual dışarıda (Pre-norm yapısı)
+        # Relative Attention (x, x, x, pos_emb) bekler
         attn_out, _ = self.attn(
             self.norm_attn(x),
             self.norm_attn(x),
-            self.norm_attn(x)
+            self.norm_attn(x),
+            pos_emb
         )
         x = x + attn_out
         
@@ -236,7 +206,8 @@ class TurkishASRModel(nn.Module):
         self.input_proj = nn.Linear(flattened_dim, d_model)
 
         # --- 2. Positional Encoding ---
-        self.pos_encoding = PositionalEncoding(d_model)
+        # --- 2. Positional Encoding (Relative) ---
+        self.pos_encoding = RelativePositionalEncoding(d_model)
         
         # --- 3. Conformer Encoder ---
         self.blocks = nn.ModuleList([
@@ -269,13 +240,20 @@ class TurkishASRModel(nn.Module):
         x = x.permute(0, 2, 1, 3).contiguous()
         x = x.view(b, t, -1) 
         
-        # 3. Projeksiyon + Pozisyon
+        # 3. Projeksiyon
         x = self.input_proj(x)
-        x = self.pos_encoding(x)
+        
+        # 4. Positional Embedding Oluştur (Ama x'e TOPLAMA, Attention'a GÖNDER)
+        # Klasik Transformer: x = x + pe
+        # Relative Conformer: pe hesapla, bloklara gönder.
+        pos_emb = self.pos_encoding(x) 
+        # x'e de ekleyebiliriz ama Relative PE genelde sadece attention bias olarak kullanılır.
+        # Yine de başlangıç stabilitesi için x'e de eklemek (absolute gibi) bazen yapılır.
+        # Biz saf relative yaklaşımını izleyelim: x'e eklenmez, attn'a gider.
         
         # 4. Conformer Blokları
         for block in self.blocks:
-            x = block(x)
+            x = block(x, pos_emb)
             
         # 5. Sınıflandırma
         x = self.fc(x)

@@ -93,16 +93,17 @@ def main():
         pct_start=0.1
     )
     
-    # 7. Trainer (Valid loader eklendi)
+    # 7. Trainer (Valid loader eklendi, Tokenizer eklendi)
     trainer = Trainer(
         model=model,
         train_loader=train_loader,
-        valid_loader=valid_loader, # Eklendi
+        valid_loader=valid_loader,
         optimizer=optimizer,
         scheduler=scheduler,
         device=device,
         config=config,
-        logger=logger
+        logger=logger,
+        tokenizer=tokenizer # Metrikler için
     )
     
     # 8. Başlat
