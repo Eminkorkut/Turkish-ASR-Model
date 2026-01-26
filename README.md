@@ -125,9 +125,17 @@ Proje, **Conformer** makalesindeki (Gulati et al., 2020) mimariyi takip eder:
 5. **Multi-Head Self Attention:** Global bağlamı yakalar.
 6. **Convolution Module:** Lokal özellikleri (fonem geçişleri) yakalar.
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje özel lisans ile korunmaktadır. İzinsiz ticari kullanım, dağıtım ve kopyalama yasaktır. Detaylar için `LICENSE` dosyasına bakınız.
+This project is licensed under a modified MIT-style **Proprietary License**.
+
+> **Permission is hereby granted, free of charge, to handle the Software, subject to the following restrictions:**
+>
+> 1. **Commercial Use:** Prohibited without written permission.
+> 2. **Modification:** Prohibited without written permission.
+> 3. **Distribution:** Prohibited without written permission.
+
+See the `LICENSE` file for the full legal text.
 
 ---
-*Geliştirici: [Adınız/Şirketiniz]*
+*Developed by Muhammed Emin Korkut - Deep Zeka A.Ş*

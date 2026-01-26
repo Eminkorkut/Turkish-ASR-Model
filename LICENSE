@@ -1,14 +1,22 @@
-TELİF HAKKI VE LİSANS SÖZLEŞMESİ
+MIT License (Modified / Restrictive)
 
-Telif Hakkı (c) 2026. Tüm Hakları Saklıdır.
+Copyright (c) 2026 Emin Korkut
 
-Bu yazılım ve ilgili dokümantasyon dosyaları ("Yazılım"), telif hakkı yasaları ve uluslararası anlaşmalarla korunmaktadır.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software with restrictions.
 
-YASAKLAR:
-1. İZİNSİZ KULLANIM: Bu Yazılımın kaynak kodunun, ikili dosyalarının veya herhangi bir parçasının, yazılı sahibinin açık yazılı izni olmaksızın herhangi bir ticari veya ticari olmayan amaçla kullanılması YASAKTIR.
-2. DAĞITIM: Bu Yazılımın kopyalanması, dağıtılması, halka açık bir depoda (GitHub, GitLab vb.) izinsiz paylaşılması YASAKTIR.
-3. DEĞİŞTİRME: Bu Yazılım üzerinde tersine mühendislik yapılması, kaynak kodunun değiştirilmesi veya türev çalışmaların oluşturulması YASAKTIR.
+RESTRICTIONS:
+1. COMMERCIAL USE: The Software may NOT be used for commercial purposes without 
+   explicit written permission from the copyright holder.
+2. MODIFICATION: The Software may NOT be modified, adapted, or used to create 
+   derivative works without explicit written permission.
+3. DISTRIBUTION: The Software may NOT be distributed, sub-licensed, or sold.
 
-Bu Yazılım "OLDUĞU GİBİ" sağlanmaktadır ve SATILABİLİRLİK veya BELİRLİ BİR AMACA UYGUNLUK zımni garantileri de dahil olmak üzere ancak bunlarla sınırlı olmamak kaydıyla, açık veya zımni hiçbir garanti verilmemektedir.
-
-Herhangi bir kullanım izni talebi için Telif Hakkı Sahibi ile iletişime geçilmelidir.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
