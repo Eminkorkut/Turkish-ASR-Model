@@ -89,7 +89,7 @@ class ConformerConvModule(nn.Module):
 
         # 4. Batch Norm + Aktivasyon
         self.batch_norm = nn.BatchNorm1d(d_model)
-        self.swish = nn.SiLU() # Swish aktivasyonu (x * sigmoid(x))
+        self.swish = nn.GELU() # GELU aktivasyonu (Whisper vb. modellerde standart)
 
         # 5. Çıkış Pointwise Conv
         self.pointwise_conv2 = nn.Conv1d(
@@ -134,7 +134,7 @@ class ConformerBlock(nn.Module):
         self.ff1 = nn.Sequential(
             nn.LayerNorm(d_model),
             nn.Linear(d_model, d_model * 4),
-            nn.SiLU(),
+            nn.GELU(),
             nn.Dropout(dropout),
             nn.Linear(d_model * 4, d_model),
             nn.Dropout(dropout)
@@ -157,7 +157,7 @@ class ConformerBlock(nn.Module):
         self.ff2 = nn.Sequential(
             nn.LayerNorm(d_model),
             nn.Linear(d_model, d_model * 4),
-            nn.SiLU(),
+            nn.GELU(),
             nn.Dropout(dropout),
             nn.Linear(d_model * 4, d_model),
             nn.Dropout(dropout)
@@ -222,9 +222,9 @@ class TurkishASRModel(nn.Module):
         # 2 adet Conv2d katmanı ile zamanı 4 kat, frekansı 4 kat küçültüyoruz (stride=2,2)
         self.subsample = nn.Sequential(
             nn.Conv2d(1, d_model, kernel_size=3, stride=2, padding=1),
-            nn.SiLU(),
+            nn.GELU(),
             nn.Conv2d(d_model, d_model, kernel_size=3, stride=2, padding=1),
-            nn.SiLU()
+            nn.GELU()
         )
         
         # Subsampling sonrası boyut hesabı:
