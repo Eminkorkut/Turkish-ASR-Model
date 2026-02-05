@@ -1,141 +1,175 @@
-# 🎙️ Gelişmiş Türkçe ASR Projesi (Modern Conformer & BPE)
+# 🎙️ Turkish ASR - Production-Ready Conformer
 
-Bu proje, Türkçe konuşma tanıma (Automatic Speech Recognition) için uçtan uca, modern ve yüksek performanslı bir çözüm sunar. Google'ın **Conformer** mimarisini temel alır ve OpenAI Whisper gibi SOTA modellerde görülen gelişmiş tekniklerle (GELU, Relative Attention, BPE) güçlendirilmiştir.
+Modern, high-performance Turkish Automatic Speech Recognition system based on **Conformer** architecture with state-of-the-art techniques.
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)
-![License](https://img.shields.io/badge/License-Proprietary-red)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🌟 Özellikler
+## 🌟 Features
 
-- **Modern Mimari:** Conformer (Convolution-augmented Transformer) blokları.
-  - **Relative Positional Encoding:** Uzun seslerde daha iyi zaman algısı.
-  - **GELU Aktivasyonu:** Daha hızlı ve kararlı eğitim (Whisper tarzı).
-  - **Relative Multi-Head Attention:** Bağımsız pozisyon kodlaması.
-- **Gelişmiş Tokenizasyon:**
-  - **SentencePiece (BPE):** Karakter yerine alt-kelime (Subword) parçalama. Bu sayede kelime dağarcığı (`vocab_size`) genişler ve model dilbilgisi kurallarını daha iyi öğrenir.
-- **Güçlü Veri Hattı:**
-  - **Otomatik Bölümleme:** Tek bir klasörü Train/Valid/Test olarak otomatik böler.
-  - **Raw Wav Desteği:** Ön işleme gerekmeden `.wav` ve `.txt` dosyalarıyla çalışır.
-  - **Data Augmentation:** SpecAugment (Time & Freq Masking) ile gürültüye direnç.
-- **Profesyonel Eğitim Döngüsü:**
-  - **Canlı Metrikler:** Loss değerinin yanında **WER (Word Error Rate)** ve **CER (Character Error Rate)** takibi.
-  - **Mixed Precision:** FP16 eğitimi ile daha hızlı ve az bellek kullanımı.
-  - **OneCycleLR:** Gelişmiş learning rate planlaması.
-- **Gelişmiş Çıkarım (Inference):**
-  - **Beam Search Decoding:** Greedy aramaya göre çok daha başarılı sonuçlar.
-  - **N-gram Language Model:** Basit dil modeli entegrasyonu (Decoding aşamasında).
+### Model Architecture
+- **Conformer Encoder** with modern enhancements
+- **Flash Attention** (PyTorch 2.0+ SDPA)
+- **Rotary Position Embeddings (RoPE)**
+- **Multi-Query Attention (MQA)** - Memory efficient
+- **SwiGLU Activation** - Modern FFN
+- **GroupNorm** - Batch-independent normalization
 
-## 📂 Dizin Yapısı
+### Data Pipeline
+- **torchaudio** - GPU-accelerated mel spectrograms
+- **SpeedPerturbation** - 0.9x/1.0x/1.1x augmentation
+- **NoisePerturbation** - SNR-based noise injection
+- **SpecAugment** - Frequency/time masking
+- **BucketingSampler** - Efficient length-based batching
+
+### Decoding
+- **Greedy Decoding** - Fast inference
+- **Beam Search** - Higher accuracy
+- **KenLM Integration** - N-gram language model
+- **Flashlight Decoder** - High-performance option
+
+### Production
+- **ONNX Export** - Platform-independent deployment
+- **FastAPI Server** - REST API
+- **Docker** - Containerization
+
+## 📂 Project Structure
 
 ```
-ASR_Project/
-├── data/                # Veri ve Tokenizasyon Modülleri
-│   ├── dataset.py       # Wav okuma ve oto-split mantığı
-│   ├── tokenizer.py     # SentencePiece wrapper
-│   └── preprocessing.py # Mel-Spectrogram dönüşümleri
-├── model/               # Derin Öğrenme Mimarisi
-│   ├── conformer.py     # Conformer blokları ve ana model
-│   └── attention.py     # Relative Multi-Head Attention
-├── trainer/             # Eğitim Motoru
-│   └── trainer.py       # Eğitim, Validasyon, Checkpoint, Metrikler
-├── utils/               # Araçlar
-│   ├── config.py        # Argüman yönetimi (argparse)
-│   ├── decoding.py      # Beam Search ve LM
-│   ├── logger.py        # Loglama
-│   └── metrics.py       # WER/CER hesabı (jiwer)
-├── main.py              # Eğitim Başlatıcı
-├── inference.py         # Test/Tahmin Scripti
-├── spm_train.py         # Tokenizer Eğitim Scripti
-└── README.md            # Dokümantasyon
+Turkish-ASR-Model/
+├── data/
+│   ├── dataset.py        # Dataset with BucketingSampler
+│   ├── preprocessing.py  # torchaudio feature extraction
+│   └── tokenizer.py      # HuggingFace tokenizer
+├── model/
+│   ├── conformer.py      # Conformer + SwiGLU + GroupNorm
+│   └── attention.py      # RoPE + MQA + Flash Attention
+├── trainer/
+│   └── trainer.py        # Gradient clipping/accumulation
+├── utils/
+│   ├── config.py         # CLI arguments
+│   ├── decoding.py       # KenLM + Beam Search
+│   ├── logger.py
+│   └── metrics.py        # WER/CER
+├── serve/
+│   └── api.py            # FastAPI server
+├── main.py               # Training script
+├── inference.py          # Inference script
+├── export_onnx.py        # ONNX export
+├── Dockerfile
+└── requirements.txt
 ```
 
-## 🚀 Kurulum
+## 🚀 Quick Start
 
-Gerekli kütüphaneleri yükleyin:
+### Installation
 
 ```bash
-pip install torch torchaudio numpy scipy sentencepiece jiwer
+pip install -r requirements.txt
 ```
 
-## 🛠️ Kullanım
-
-### 1. Veri Hazırlığı ve Tokenizer Eğitimi (Zorunlu)
-
-Eğitime başlamadan önce, veri setinizdeki metinleri tarayarak bir BPE (Byte Pair Encoding) modeli eğitmelisiniz. Bu adım `tokenizer_bpe.model` dosyasını oluşturur.
+### Training
 
 ```bash
-# Veri yolunu kendi klasörünüze göre düzenleyin
-python spm_train.py --data_path "C:/Veri/Klasorum" --vocab_size 1000
+# Basic training
+python main.py --data_path /path/to/data --n_mel_channels 80
+
+# With augmentation
+python main.py --data_path /path/to/data --augment --speed_perturb
+
+# With gradient accumulation (effective batch = 32 * 4 = 128)
+python main.py --data_path /path/to/data \
+  --batch_size 32 \
+  --accumulation_steps 4 \
+  --gradient_clip 1.0
+
+# Resume training
+python main.py --resume
 ```
 
-*Not: `vocab_size` değeri veri büyüklüğüne göre 1000, 2000, 5000 seçilebilir.*
-
-### 2. Model Eğitimi (Training)
-
-Eğitimi başlatmak için sadece veri klasörünü göstermeniz yeterlidir. Sistem otomatik olarak train/valid/test ayrımı yapar.
+### Inference
 
 ```bash
-python main.py --data_path "C:/Veri/Klasorum" --epochs 50 --batch_size 16 --vocab_size 1000
+# Single file
+python inference.py --audio audio.wav --model runs/best_model.pt
+
+# With beam search
+python inference.py --audio audio.wav --model runs/best_model.pt --beam_search
 ```
 
-**Opsiyonel Parametreler:**
-
-- `--val_split 0.2`: Verinin %20'sini validasyon için ayırır.
-- `--checkpoint_dir "./kayitlar"`: Modellerin kaydedileceği yer.
-- `--n_blocks 8` `--d_model 256`: Modelin derinliğini ve genişliğini ayarlar.
-
-### 3. Test ve Tahmin (Inference)
-
-Eğitilmiş bir modeli kullanarak ses dosyalarını metne çevirmek için:
+### ONNX Export
 
 ```bash
-python inference.py --wav_path "ornek_ses.wav" --model_path "checkpoints/best_model.pt"
+python export_onnx.py --checkpoint runs/best_model.pt --output model.onnx
 ```
 
-**Beam Search Kullanımı:**
-Daha iyi sonuçlar için beam genişliğini artırabilirsiniz:
+### API Server
 
 ```bash
-python inference.py --wav_path "test.wav" --model_path "model.pt" --beam_width 10
+# Local
+python serve/api.py
+
+# Docker
+docker build -t turkish-asr .
+docker run -p 8000:8000 -v ./runs:/app/models turkish-asr
+
+# Test
+curl -X POST http://localhost:8000/transcribe -F "file=@audio.wav"
 ```
 
-## 📊 Performans Takibi (Metrikler)
+## ⚙️ Configuration
 
-Eğitim sırasında konsolda her epoch sonunda şunları göreceksiniz:
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--n_mel_channels` | 80 | Mel filterbanks |
+| `--d_model` | 256 | Model dimension |
+| `--n_heads` | 4 | Attention heads |
+| `--n_blocks` | 8 | Conformer blocks |
+| `--gradient_clip` | 1.0 | Max gradient norm |
+| `--accumulation_steps` | 1 | Gradient accumulation |
+| `--augment` | False | Enable SpecAugment |
+| `--speed_perturb` | False | Enable speed perturbation |
 
-- **Loss:** Modelin matematiksel hatası.
-- **WER (Word Error Rate):** Kelime bazlı hata oranı (Düşük olması iyidir).
-- **CER (Character Error Rate):** Harf bazlı hata oranı.
+## 📊 Metrics
 
-Örnek Çıktı:
+Training outputs:
+- **Loss** - CTC loss
+- **WER** - Word Error Rate
+- **CER** - Character Error Rate
 
+## 🔧 Advanced
+
+### KenLM Language Model
+
+```bash
+# Install KenLM
+pip install https://github.com/kpu/kenlm/archive/master.zip
+
+# Train LM
+lmplz -o 4 < corpus.txt > lm.arpa
+build_binary lm.arpa lm.bin
+
+# Use in inference
+python inference.py --audio audio.wav --model model.pt --lm lm.bin
 ```
-Epoch 10 | Validation Loss: 0.4523 | WER: 0.1250 | CER: 0.0410
+
+### Docker Deployment
+
+```bash
+# Build
+docker build -t turkish-asr .
+
+# Run with GPU
+docker run --gpus all -p 8000:8000 \
+  -v ./runs:/app/models \
+  -e ASR_MODEL_PATH=/app/models/best_model.pt \
+  turkish-asr
 ```
-
-## 🧠 Model Mimarisi Detayları
-
-Proje, **Conformer** makalesindeki (Gulati et al., 2020) mimariyi takip eder:
-
-1. **SpecAugment:** Giriş spektrogramında rastgele maskeleme.
-2. **Convolution Subsampling:** Zaman boyutunu 4 kat küçültür (Hız kazandırır).
-3. **Relative Positional Encoding:** Sesin akış yönünü modele öğretir.
-4. **Macaron Style FFN:** Blok başında ve sonunda yarımşar Feed-Forward katmanı.
-5. **Multi-Head Self Attention:** Global bağlamı yakalar.
-6. **Convolution Module:** Lokal özellikleri (fonem geçişleri) yakalar.
 
 ## 📄 License
 
-This project is licensed under a modified MIT-style **Proprietary License**.
-
-> **Permission is hereby granted, free of charge, to handle the Software, subject to the following restrictions:**
->
-> 1. **Commercial Use:** Prohibited without written permission.
-> 2. **Modification:** Prohibited without written permission.
-> 3. **Distribution:** Prohibited without written permission.
-
-See the `LICENSE` file for the full legal text.
+MIT License - See LICENSE file
 
 ---
 *Developed by Muhammed Emin Korkut - Deep Zeka A.Ş*
