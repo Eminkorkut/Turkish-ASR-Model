@@ -1,0 +1,27 @@
+
+Gelu -> SwiGlu
+LayerNorm -> GroupNorm
+Rotary Positional Embedding (RoPE)
+Padding Mask
+LR Scheduler
+einsum -> matmul
+Multi-Query Attention
+Relative Shift
+
+
+# Tokenizer yapısı buna geçekcek.
+"""
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("alibayram/turkish-mft-tokenizer", trust_remote_code=True)
+
+text = "Merhaba nasılsın?"
+tokens = tokenizer.tokenize(text)
+print(tokens)
+
+ids = tokenizer.encode(text)
+print(ids)
+
+decoded_text = tokenizer.decode(ids)
+print(decoded_text)
+"""
