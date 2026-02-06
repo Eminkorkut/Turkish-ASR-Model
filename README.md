@@ -1,175 +1,180 @@
-# 🎙️ Turkish ASR - Production-Ready Conformer
+# 🎙️ Türkçe ASR - Üretime Hazır Conformer Modeli
 
-Modern, high-performance Turkish Automatic Speech Recognition system based on **Conformer** architecture with state-of-the-art techniques.
+Modern tekniklerle geliştirilmiş **Conformer** mimarisine dayalı, yüksek performanslı Türkçe Otomatik Konuşma Tanıma (ASR) sistemi.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🌟 Features
+## 🌟 Özellikler
 
-### Model Architecture
-- **Conformer Encoder** with modern enhancements
-- **Flash Attention** (PyTorch 2.0+ SDPA)
-- **Rotary Position Embeddings (RoPE)**
-- **Multi-Query Attention (MQA)** - Memory efficient
-- **SwiGLU Activation** - Modern FFN
-- **GroupNorm** - Batch-independent normalization
+### Model Mimarisi
 
-### Data Pipeline
-- **torchaudio** - GPU-accelerated mel spectrograms
-- **SpeedPerturbation** - 0.9x/1.0x/1.1x augmentation
-- **NoisePerturbation** - SNR-based noise injection
-- **SpecAugment** - Frequency/time masking
-- **BucketingSampler** - Efficient length-based batching
+- **Conformer Kodlayıcı (Encoder)**: Modern iyileştirmelerle
+- **Flash Attention**: PyTorch 2.0+ SDPA desteği ile hızlı dikkat mekanizması
+- **Rotary Position Embeddings (RoPE)**: Göreceli pozisyon kodlama
+- **Multi-Query Attention (MQA)**: Bellek verimliliği sağlayan dikkat yapısı
+- **SwiGLU Aktivasyonu**: Modern İleri Beslemeli Ağ (FFN) yapısı
+- **GroupNorm**: Batch boyutundan bağımsız normalizasyon
 
-### Decoding
-- **Greedy Decoding** - Fast inference
-- **Beam Search** - Higher accuracy
-- **KenLM Integration** - N-gram language model
-- **Flashlight Decoder** - High-performance option
+### Veri İşleme Hattı
 
-### Production
-- **ONNX Export** - Platform-independent deployment
-- **FastAPI Server** - REST API
-- **Docker** - Containerization
+- **torchaudio**: GPU hızlandırmalı Mel spektrogram çıkarımı
+- **SpeedPerturbation**: 0.9x/1.0x/1.1x hız değişimleri ile veri çoğaltma
+- **NoisePerturbation**: SNR tabanlı gürültü ekleme
+- **SpecAugment**: Frekans ve zaman maskeleme
+- **BucketingSampler**: Benzer uzunluktaki verileri gruplayarak verimli batch işleme
 
-## 📂 Project Structure
+### Kod Çözme (Decoding)
+
+- **Greedy Decoding**: Hızlı çıkarım
+- **Beam Search**: Daha yüksek doğruluk
+- **KenLM Entegrasyonu**: N-gram dil modeli desteği
+- **Flashlight Decoder**: Yüksek performanslı kod çözücü seçeneği
+
+### Üretim (Production)
+
+- **ONNX Dışa Aktarma**: Platform bağımsız dağıtım
+- **FastAPI Sunucusu**: REST API desteği
+- **Docker**: Konteynerizasyon
+
+## 📂 Proje Yapısı
 
 ```
 Turkish-ASR-Model/
 ├── data/
-│   ├── dataset.py        # Dataset with BucketingSampler
-│   ├── preprocessing.py  # torchaudio feature extraction
+│   ├── dataset.py        # BucketingSampler içeren Veri Seti sınıfı
+│   ├── preprocessing.py  # torchaudio özellik çıkarımı
 │   └── tokenizer.py      # HuggingFace tokenizer
 ├── model/
-│   ├── conformer.py      # Conformer + SwiGLU + GroupNorm
+│   ├── conformer.py      # Conformer + SwiGLU + GroupNorm mimarisi
 │   └── attention.py      # RoPE + MQA + Flash Attention
 ├── trainer/
-│   └── trainer.py        # Gradient clipping/accumulation
+│   └── trainer.py        # Gradyan kırpma/biriktirme özellikli eğitimci
 ├── utils/
-│   ├── config.py         # CLI arguments
+│   ├── config.py         # Komut satırı argümanları
 │   ├── decoding.py       # KenLM + Beam Search
-│   ├── logger.py
-│   └── metrics.py        # WER/CER
+│   ├── logger.py         # Loglama araçları
+│   └── metrics.py        # WER/CER hesaplamaları
 ├── serve/
-│   └── api.py            # FastAPI server
-├── main.py               # Training script
-├── inference.py          # Inference script
-├── export_onnx.py        # ONNX export
-├── Dockerfile
-└── requirements.txt
+│   └── api.py            # FastAPI sunucusu
+├── main.py               # Eğitim betiği
+├── inference.py          # Tahmin/Çıkarım betiği
+├── export_onnx.py        # ONNX dışa aktarma
+├── Dockerfile            # Docker yapılandırması
+└── requirements.txt      # Bağımlılıklar
 ```
 
-## 🚀 Quick Start
+## 🚀 Hızlı Başlangıç
 
-### Installation
+### Kurulum
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Training
+### Eğitim (Training)
 
 ```bash
-# Basic training
-python main.py --data_path /path/to/data --n_mel_channels 80
+# Temel eğitim
+python main.py --data_path /veri/yolu --n_mel_channels 80
 
-# With augmentation
-python main.py --data_path /path/to/data --augment --speed_perturb
+# Veri çoğaltma (augmentation) ile eğitim
+python main.py --data_path /veri/yolu --augment --speed_perturb
 
-# With gradient accumulation (effective batch = 32 * 4 = 128)
-python main.py --data_path /path/to/data \
+# Gradyan biriktirme ile (efektif batch boyutu = 32 * 4 = 128)
+python main.py --data_path /veri/yolu \
   --batch_size 32 \
   --accumulation_steps 4 \
   --gradient_clip 1.0
 
-# Resume training
+# Eğitime kaldığı yerden devam etme (Resume)
 python main.py --resume
 ```
 
-### Inference
+### Tahmin (Inference)
 
 ```bash
-# Single file
-python inference.py --audio audio.wav --model runs/best_model.pt
+# Tek dosya için tahmin
+python inference.py --audio ses.wav --model runs/best_model.pt
 
-# With beam search
-python inference.py --audio audio.wav --model runs/best_model.pt --beam_search
+# Beam Search kullanarak tahmin
+python inference.py --audio ses.wav --model runs/best_model.pt --beam_search
 ```
 
-### ONNX Export
+### ONNX Dışa Aktarma (Export)
 
 ```bash
 python export_onnx.py --checkpoint runs/best_model.pt --output model.onnx
 ```
 
-### API Server
+### API Sunucusu
 
 ```bash
-# Local
+# Yerel çalıştıma
 python serve/api.py
 
-# Docker
+# Docker ile çalıştırma
 docker build -t turkish-asr .
 docker run -p 8000:8000 -v ./runs:/app/models turkish-asr
 
-# Test
-curl -X POST http://localhost:8000/transcribe -F "file=@audio.wav"
+# Test etme
+curl -X POST http://localhost:8000/transcribe -F "file=@ses.wav"
 ```
 
-## ⚙️ Configuration
+## ⚙️ Yapılandırma
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--n_mel_channels` | 80 | Mel filterbanks |
-| `--d_model` | 256 | Model dimension |
-| `--n_heads` | 4 | Attention heads |
-| `--n_blocks` | 8 | Conformer blocks |
-| `--gradient_clip` | 1.0 | Max gradient norm |
-| `--accumulation_steps` | 1 | Gradient accumulation |
-| `--augment` | False | Enable SpecAugment |
-| `--speed_perturb` | False | Enable speed perturbation |
+| Parametre | Varsayılan | Açıklama |
+|-----------|------------|----------|
+| `--n_mel_channels` | 80 | Mel filtre sayısı |
+| `--d_model` | 256 | Model boyutu |
+| `--n_heads` | 4 | Dikkat başlığı sayısı |
+| `--n_blocks` | 8 | Conformer blok sayısı |
+| `--gradient_clip` | 1.0 | Maksimum gradyan normu |
+| `--accumulation_steps` | 1 | Gradyan biriktirme adımları |
+| `--augment` | False | SpecAugment aktif et |
+| `--speed_perturb` | False | Hız değişimini aktif et |
 
-## 📊 Metrics
+## 📊 Metrikler
 
-Training outputs:
-- **Loss** - CTC loss
-- **WER** - Word Error Rate
-- **CER** - Character Error Rate
+Eğitim çıktıları:
 
-## 🔧 Advanced
+- **Loss**: CTC kaybı
+- **WER**: Kelime Hata Oranı (Word Error Rate)
+- **CER**: Karakter Hata Oranı (Character Error Rate)
 
-### KenLM Language Model
+## 🔧 İleri Düzey Konular
+
+### KenLM Dil Modeli
 
 ```bash
-# Install KenLM
+# KenLM kurulumu
 pip install https://github.com/kpu/kenlm/archive/master.zip
 
-# Train LM
+# Dil modeli eğitimi (corpus.txt üzerinden)
 lmplz -o 4 < corpus.txt > lm.arpa
 build_binary lm.arpa lm.bin
 
-# Use in inference
-python inference.py --audio audio.wav --model model.pt --lm lm.bin
+# Tahmin sırasında kullanma
+python inference.py --audio ses.wav --model model.pt --lm lm.bin
 ```
 
-### Docker Deployment
+### Docker Dağıtımı
 
 ```bash
-# Build
+# İnşa etme
 docker build -t turkish-asr .
 
-# Run with GPU
+# GPU ile çalıştırma
 docker run --gpus all -p 8000:8000 \
   -v ./runs:/app/models \
   -e ASR_MODEL_PATH=/app/models/best_model.pt \
   turkish-asr
 ```
 
-## 📄 License
+## 📄 Lisans
 
-MIT License - See LICENSE file
+MIT Lisansı - Detaylar için LICENSE dosyasına bakınız.
 
 ---
-*Developed by Muhammed Emin Korkut - Deep Zeka A.Ş*
+*Geliştirici: Muhammed Emin Korkut - Deep Zeka A.Ş*

@@ -57,10 +57,11 @@ class ASRDataset(Dataset):
         self.device = device
         
         # Initialize preprocessor
+        # Force CPU for data loading to avoid CUDA initialization errors in workers
         self.preprocessor = AudioPreprocessor(
             n_mels=n_mel_channels,
             normalize=True,
-            device=device
+            device="cpu"
         )
         
         # Augmentations

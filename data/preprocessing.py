@@ -213,11 +213,17 @@ class SpeedPerturbation:
         if speed == 1.0:
             return waveform
             
-        # Speed change via resampling
-        effects = [["speed", str(speed)], ["rate", str(sample_rate)]]
-        perturbed, _ = torchaudio.sox_effects.apply_effects_tensor(
-            waveform, sample_rate, effects, channels_first=True
-        )
+        if speed == 1.0:
+            return waveform
+            
+        # Speed change via resampling (changes pitch and speed)
+        # To speed up (speed > 1), we need fewer samples.
+        # resample(orig, new) -> output_len = input_len * (new / orig)
+        # We want output_len = input_len / speed
+        # So new / orig = 1 / speed  => new = orig / speed
+        new_freq = int(sample_rate / speed)
+        
+        perturbed = F.resample(waveform, orig_freq=sample_rate, new_freq=new_freq)
         
         return perturbed
 

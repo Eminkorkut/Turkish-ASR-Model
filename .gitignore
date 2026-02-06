@@ -1,9 +1,9 @@
-# Python
+# Python dosyaları
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Data & Models
+# Veri ve Model Dosyaları
 *.pt
 *.pth
 *.onnx
@@ -16,7 +16,7 @@ outputs/
 logs/
 *.log
 
-# Environments
+# Sanal Ortamlar (Environments)
 .env
 .venv
 env/
@@ -25,29 +25,32 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE
+# Geliştirme Ortamı (IDE)
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
+# İşletim Sistemi Dosyaları
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# Build
+# Derleme ve Dağıtım (Build)
 dist/
 build/
 *.egg-info/
 
-# Tests
+# Test ve Kapsam
 .pytest_cache/
 .coverage
 htmlcov/
 
-# Jupyter
+# Jupyter Notebook
 .ipynb_checkpoints
 
-
+# Veri Setleri
 ISSAI_TSC_218/
+data/raw/
+data/processed/
+temp_test_data/
